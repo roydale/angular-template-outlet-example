@@ -1,53 +1,40 @@
 import { NgTemplateOutlet } from '@angular/common';
-import { Component, inject, Injector, Input, TemplateRef } from '@angular/core';
+import { AfterViewInit, Component, inject, Injector, Input, TemplateRef, ViewChild, ViewContainerRef } from '@angular/core';
 import { WidgetActions } from '../widget-actions.service';
 import { WidgetState } from '../widget-state.service';
 
 @Component({
-  selector: 'weather-widget',
-  standalone: true,
-  imports: [NgTemplateOutlet],
-  template: `
-    <div class="widget-header">
-      <ng-container [ngTemplateOutlet]="headerTemplate || defaultWidgetHeader"></ng-container>
-      <ng-template #defaultWidgetHeader>
-        <div class="widget-title">Weather Forecast</div>
-        <div class="widget-sub-title">Current weather in your location</div>
-      </ng-template>
-    </div>
-    <div class="widget-content">
-      <ng-container
-        [ngTemplateOutlet]="contentTemplate || defaultWidgetContent"
-        [ngTemplateOutletContext]="{ $implicit: state }"></ng-container>
-      <ng-template #defaultWidgetContent>
-        <div class="sky-condition">{{ state.data.skyCondition === 'sunny' ? '☀️' : '☁️' }}</div>
-        <div class="temperature">{{state.data.temperature}}°C</div>
-      </ng-template>
-    </div>
-    <div class="widget-actions">
-      <ng-container
-        [ngTemplateOutlet]="actionTemplate || defaultWidgetAction"
-        [ngTemplateOutletInjector]="injector"></ng-container>
-      <ng-template #defaultWidgetAction>
-        <button (click)="actions.reload()">Reload</button>
-        <button (click)="actions.copyData()">Copy Info</button>
-      </ng-template>
-    </div>
-  `,
-  styleUrls: ['./weather-widget.component.css'],
-  providers: [WidgetActions, WidgetState]
+	selector: 'weather-widget',
+	standalone: true,
+	imports: [NgTemplateOutlet],
+	templateUrl: './weather-widget.component.html',
+	styleUrls: ['./weather-widget.component.css'],
+	providers: [WidgetActions, WidgetState]
 })
-export class WeatherWidgetComponent {
-  @Input()
-  headerTemplate!: TemplateRef<any>;
+export class WeatherWidgetComponent implements AfterViewInit {
 
-  @Input()
-  actionTemplate!: TemplateRef<any>;
+	@Input() headerTemplate!: TemplateRef<any>;
+	@Input() actionTemplate!: TemplateRef<any>;
+	@Input() contentTemplate!: TemplateRef<{ $implicit: WidgetState }>;
 
-  @Input()
-  contentTemplate!: TemplateRef<{ $implicit: WidgetState }>;
+	state = inject(WidgetState);
+	actions = inject(WidgetActions);
+	injector = inject(Injector);
 
-  state = inject(WidgetState);
-  actions = inject(WidgetActions);
-  injector = inject(Injector);
+	//@ViewChild('container', { read: ViewContainerRef }) container!: ViewContainerRef;
+	//@ViewChild('dateToday') dateTodayLabel!: TemplateRef<any>;
+
+	ngAfterViewInit(): void {
+		//this.container.createEmbeddedView(this.dateTodayLabel);
+	}
+
+	getDateToday(): string {
+		const today = new Date();
+		const dd = String(today.getDate()).padStart(2, '0');
+		const mm = String(today.getMonth() + 1).padStart(2, '0'); //January is 0!
+		const yyyy = today.getFullYear();
+
+		const dateToday = mm + '/' + dd + '/' + yyyy;
+		return dateToday;
+	}
 }
